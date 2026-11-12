@@ -424,7 +424,9 @@ function drawCaption(t) {
 
 // ---------- entry points ----------
 let lastT = 0;
-window.setup = async (capture, recInfo, dir) => {
+let showCaptions = true;
+window.setup = async (capture, recInfo, dir, opts = {}) => {
+  showCaptions = opts.captions !== false;
   cap = capture;
   capDir = dir;
   rec = recInfo;
@@ -453,7 +455,7 @@ window.renderFrame = async (i) => {
     if (t < 35.6 + 0.35) await drawApp(SCENES.find((x) => x.id === 'saved'), Math.min(t, 35.599), dt);
     drawOutro(t);
   }
-  drawCaption(t);
+  if (showCaptions) drawCaption(t);
   const url = canvas.toDataURL('image/jpeg', 0.95);
   return url.slice(url.indexOf(',') + 1);
 };

@@ -4,6 +4,7 @@
 //   node demo/render.mjs --stills 3.5,12,25    # just write PNG stills at those seconds (for review)
 //
 // Env: CAPTURE_NAME (default "capture"), the folder under demo/build written by capture.mjs.
+//      CAPTIONS=0 renders without captions (e.g. for a clean cover image).
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -43,7 +44,8 @@ await page.route('http://demo.local/**', (route) => {
 });
 await page.goto('http://demo.local/compose.html');
 await page.waitForFunction(() => typeof window.renderFrame === 'function');
-const { frames } = await page.evaluate(([c, r, d]) => window.setup(c, r, d), [capture, rec, `build/${CAP}`]);
+const opts = { captions: process.env.CAPTIONS !== '0' };
+const { frames } = await page.evaluate(([c, r, d, o]) => window.setup(c, r, d, o), [capture, rec, `build/${CAP}`, opts]);
 
 if (stills) {
   const dir = join(BUILD, 'stills');
