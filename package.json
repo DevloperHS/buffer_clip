@@ -1,0 +1,9 @@
+{
+  "name": "buffer-clip",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @buffer-clip/web dev",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

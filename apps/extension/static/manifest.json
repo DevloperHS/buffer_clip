@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Buffer Clip",
+  "description": "Record a tab and turn it into a polished product demo.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "116",
+  "action": { "default_title": "Buffer Clip", "default_popup": "popup.html" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "permissions": ["tabCapture", "offscreen", "storage", "activeTab", "scripting", "unlimitedStorage"],
+  "host_permissions": ["http://localhost:3000/*"],
+  "content_scripts": [
+    { "matches": ["http://localhost:3000/*"], "js": ["bridge-content.js"], "run_at": "document_start" }
+  ],
+  "web_accessible_resources": [
+    { "resources": ["bridge.html", "bridge-page.js"], "matches": ["http://localhost:3000/*"] }
+  ],
+  "commands": {
+    "stop-recording": { "suggested_key": { "default": "Alt+Shift+S" }, "description": "Stop recording" }
+  }
+}

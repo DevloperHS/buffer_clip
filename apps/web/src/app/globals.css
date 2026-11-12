@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #FBFBFA;
+  --color-surface: #F2F2F0;
+  --color-hairline: #E6E6E3;
+  --color-muted: #A3A3A0;
+  --color-secondary: #6B6B68;
+  --color-ink: #111111;
+  --color-paper: #FFFFFF;
+
+  --font-sans: var(--font-inter), "SF Pro Text", -apple-system, system-ui, sans-serif;
+
+  --radius-window: 14px;
+  --radius-card: 12px;
+
+  --shadow-window: 0 0 0 1px rgb(0 0 0 / 0.04), 0 24px 48px -12px rgb(0 0 0 / 0.18);
+  --shadow-card: 0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-lift: 0 0 0 1px rgb(0 0 0 / 0.06), 0 18px 36px -12px rgb(0 0 0 / 0.22);
+
+  --ease-mac: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Dark follows the system unless the user picked Light; data-theme=dark forces it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-canvas: #0E0E0E;
+    --color-surface: #1A1A1A;
+    --color-hairline: #2A2A2A;
+    --color-muted: #6B6B68;
+    --color-secondary: #A3A3A0;
+    --color-ink: #F5F5F4;
+    --color-paper: #161616;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --color-canvas: #0E0E0E;
+  --color-surface: #1A1A1A;
+  --color-hairline: #2A2A2A;
+  --color-muted: #6B6B68;
+  --color-secondary: #A3A3A0;
+  --color-ink: #F5F5F4;
+  --color-paper: #161616;
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* Theme switch: a soft crossfade (View Transitions) instead of a hard flip. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-mac);
+}
+
+@utility glass {
+  background-color: color-mix(in srgb, var(--color-canvas) 72%, transparent);
+  /* Prefixed first: the minifier keeps only the last of the pair, and Chrome ignores the prefixed one. */
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-canvas);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 150ms !important;
+    animation-duration: 150ms !important;
+  }
+}
+
+input[type='range'].bc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--color-ink) var(--fill), var(--color-hairline) var(--fill));
+  outline: none;
+  cursor: pointer;
+}
+input[type='range'].bc-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-paper);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.12), 0 1px 3px rgb(0 0 0 / 0.2);
+  transition: transform 150ms var(--ease-mac);
+}
+input[type='range'].bc-range:active::-webkit-slider-thumb { transform: scale(1.15); }
+input[type='range'].bc-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--color-ink); }
+input[type='range'].bc-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-paper);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.12), 0 1px 3px rgb(0 0 0 / 0.2);
+}

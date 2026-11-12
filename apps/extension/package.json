@@ -1,0 +1,22 @@
+{
+  "name": "@buffer-clip/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@buffer-clip/core": "workspace:*",
+    "idb": "^8.0.4"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "esbuild": "^0.28.2",
+    "fake-indexeddb": "^6.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
