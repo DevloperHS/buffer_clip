@@ -1,0 +1,63 @@
+# Publishes a release when a version tag is pushed, for example: git tag v0.1.0 && git push origin v0.1.0
+# Builds the Chrome extension from this exact commit and attaches it as a ready-to-load zip.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish the extension
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Check the tag matches the extension version
+        run: |
+          manifest=$(node -p "require('./apps/extension/static/manifest.json').version")
+          if [ "v$manifest" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME doesn't match the extension version $manifest in apps/extension/static/manifest.json"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check and unit tests
+        run: |
+          pnpm typecheck
+          pnpm test
+
+      # Recordings open in the Buffer Clip app at http://localhost:3000 (the default).
+      - name: Build the extension
+        run: pnpm --filter @buffer-clip/extension build
+
+      - name: Package the extension
+        run: |
+          cd apps/extension/dist
+          zip -r -X "$GITHUB_WORKSPACE/buffer-clip-extension-$GITHUB_REF_NAME.zip" . -x '*.map'
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "buffer-clip-extension-$GITHUB_REF_NAME.zip" \
+            --title "Buffer Clip $GITHUB_REF_NAME (early preview)" \
+            --notes-file .github/release-notes.md

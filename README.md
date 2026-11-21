@@ -30,7 +30,7 @@ styles the frame and exports a crisp MP4. All in your browser, nothing uploaded.
 ![Status: early preview](https://img.shields.io/badge/Status-Early_preview-F59E0B?style=flat-square)
 [![Checks](https://github.com/DevloperHS/buffer_clip/actions/workflows/checks.yml/badge.svg)](https://github.com/DevloperHS/buffer_clip/actions/workflows/checks.yml)
 
-[**Features**](#features) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Project structure**](#project-structure) · [**Contributing**](CONTRIBUTING.md)
+[**Features**](#features) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Project structure**](#project-structure) · [**Download**](https://github.com/DevloperHS/buffer_clip/releases/latest) · [**Contributing**](CONTRIBUTING.md)
 
 <br>
 
@@ -89,22 +89,24 @@ flowchart LR
 
 **Requirements:** Node.js 20+, pnpm 9+, and Chrome or Edge.
 
-**1. Install and run the app** (it opens on http://localhost:3000):
+Buffer Clip has two parts: the **extension** records your tab, and the **editor** runs on your own computer at `http://localhost:3000`. When you stop a recording, it opens there, so start the editor first.
+
+**1. Run the editor** (it opens on http://localhost:3000):
 
 ```bash
+git clone https://github.com/DevloperHS/buffer_clip.git
+cd buffer_clip
 pnpm install
 pnpm dev
 ```
 
-**2. Build the extension:**
+**2. Get the extension.** Either:
+- **Download it (easiest):** grab `buffer-clip-extension-….zip` from the [latest release](https://github.com/DevloperHS/buffer_clip/releases/latest) and unzip it, or
+- **Build it yourself:** run `pnpm --filter @buffer-clip/extension build`; it's created in `apps/extension/dist`.
 
-```bash
-pnpm --filter @buffer-clip/extension build
-```
-
-**3. Load it in Chrome:**
-1. Open `chrome://extensions` and turn on **Developer mode**.
-2. Click **Load unpacked** and choose `apps/extension/dist`.
+**3. Load it in Chrome or Edge:**
+1. Open `chrome://extensions` (`edge://extensions` in Edge) and turn on **Developer mode**.
+2. Click **Load unpacked** and choose the unzipped folder (or `apps/extension/dist`).
 3. Pin Buffer Clip, open any website and click its icon to record.
 
 > [!TIP]
