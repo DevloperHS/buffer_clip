@@ -1,0 +1,29 @@
+name: ✨ Suggest an idea
+description: A feature or improvement you'd like to see.
+title: "Idea: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We love ideas! Describe it however feels natural. Sketches and screenshots are welcome.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would this help with?
+      description: The problem or annoyance this idea solves.
+      placeholder: "I record the same intro every time and want to reuse it."
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How do you picture it working?
+      placeholder: "A 'Save as template' button in the editor."
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or pictures (optional)
+      description: Another app that does it well, a sketch, or a screenshot. Drag files here.

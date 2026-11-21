@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📘 How to contribute
+    url: https://github.com/DevloperHS/buffer_clip/blob/main/CONTRIBUTING.md
+    about: New to GitHub? Start with the plain-language contribution guide.

@@ -28,7 +28,7 @@ styles the frame and exports a crisp MP4. All in your browser, nothing uploaded.
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=flat-square)](LICENSE)
 
-[**Features**](#features) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Project structure**](#project-structure)
+[**Features**](#features) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Project structure**](#project-structure) · [**Contributing**](CONTRIBUTING.md)
 
 <br>
 
@@ -132,6 +132,12 @@ buffer-clip/
 │   └── core/        # Engine in pure TypeScript: time mapping, zooms, idle detection, camera, rendering
 └── demo/            # Scripts that produce the launch demo video from the real app
 ```
+
+<a id="contributing"></a>
+
+## 🤝 Contributing
+
+You don't need to be a programmer to help: reporting a bug, suggesting an idea or fixing a typo all count. The [contribution guide](CONTRIBUTING.md) walks you through each one in plain language, step by step.
 
 ## 📄 License
 
