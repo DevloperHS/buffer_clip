@@ -28,6 +28,7 @@ styles the frame and exports a crisp MP4. All in your browser, nothing uploaded.
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm_Noncommercial-111111?style=flat-square)](LICENSE)
 ![Status: early preview](https://img.shields.io/badge/Status-Early_preview-F59E0B?style=flat-square)
+[![Checks](https://github.com/DevloperHS/buffer_clip/actions/workflows/checks.yml/badge.svg)](https://github.com/DevloperHS/buffer_clip/actions/workflows/checks.yml)
 
 [**Features**](#features) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Project structure**](#project-structure) · [**Contributing**](CONTRIBUTING.md)
 

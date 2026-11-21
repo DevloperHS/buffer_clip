@@ -68,6 +68,9 @@ A "bug" is anything that doesn't work the way it should: a button that does noth
 > [!TIP]
 > Not sure if it's a bug? Report it anyway. It's much better to hear about something twice than not at all.
 
+> [!WARNING]
+> Found a **security** problem, like a way to see someone else's recordings? Please don't post it publicly. Follow the [security policy](SECURITY.md) to report it privately.
+
 <a id="suggest-an-idea"></a>
 
 ## ✨ Suggest an idea
@@ -145,6 +148,7 @@ pnpm --filter @buffer-clip/extension build  # then load apps/extension/dist in c
    ```
 
 5. Push your branch to your fork and open a pull request against `main` of this repository. Describe what changed and how you checked it. Screenshots help for anything visual.
+6. The **Checks** workflow runs the type check, tests and builds on your pull request automatically. A green tick means it's ready for review.
 
 **Where things live**
 
