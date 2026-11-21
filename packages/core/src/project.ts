@@ -25,7 +25,7 @@ export function createInitialProject(recording: Recording): Project {
   return {
     version: 1,
     recordingId: recording.id,
-    clips: detectIdle(recording.events, recording.durationMs),
+    clips: detectIdle(recording.events, recording.durationMs, {}, recording.motion),
     zooms: suggestZooms(recording.events, recording.durationMs),
     cursor: { ...DEFAULT_CURSOR },
     background: { ...DEFAULT_BACKGROUND },

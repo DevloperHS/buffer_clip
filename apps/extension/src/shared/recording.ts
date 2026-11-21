@@ -20,6 +20,8 @@ export interface BuildInput {
   crop: Rect | null;
   hasAudio: boolean;
   events: InputEvent[];
+  /** Captured at a fixed size (see captureSize), so the page may sit between thin bars. */
+  letterboxed?: boolean;
 }
 
 export function buildRecording(i: BuildInput): Recording {
@@ -33,5 +35,6 @@ export function buildRecording(i: BuildInput): Recording {
     crop: i.crop,
     hasAudio: i.hasAudio,
     events: toRelativeEvents(i.events, i.startedAt, durationMs),
+    ...(i.letterboxed ? { captureFit: 'letterbox' as const } : {}),
   };
 }

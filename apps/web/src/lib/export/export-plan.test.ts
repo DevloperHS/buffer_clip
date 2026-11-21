@@ -1,7 +1,7 @@
 import { createInitialProject, type Clip, type Recording } from '@buffer-clip/core';
 import { describe, expect, it } from 'vitest';
 import {
-  bitrateFor, estimateBytes, exportErrorMessage, exportFileName, exportFrameTimes, formatBytes, planAudio,
+  bitrateFor, estimateBytes, exportErrorMessage, exportFileName, exportFrameTimes, formatBytes, planAudio, SPED_UP_GAIN, dissolveAt, DISSOLVE_MS,
 } from './export-plan';
 
 const clips: Clip[] = [
@@ -19,10 +19,10 @@ describe('export planning', () => {
     expect(t[14]).toBe(3800);
     expect(exportFrameTimes([], 30)).toEqual([0]);
   });
-  it('plans audio: normal-speed clips keep sound, other speeds are muted', () => {
+  it('plans audio: every clip keeps its sound, sped-up ones stretched and a little quieter', () => {
     expect(planAudio(clips)).toEqual([
-      { srcStartMs: 0, srcEndMs: 1000, outDurationMs: 1000, mute: false },
-      { srcStartMs: 3000, srcEndMs: 4000, outDurationMs: 500, mute: true },
+      { srcStartMs: 0, srcEndMs: 1000, outDurationMs: 1000, speed: 1, gain: 1 },
+      { srcStartMs: 3000, srcEndMs: 4000, outDurationMs: 500, speed: 2, gain: SPED_UP_GAIN },
     ]);
   });
   it('scales bitrate with pixels and frame rate within limits', () => {
@@ -51,5 +51,11 @@ describe('export planning', () => {
     expect(exportErrorMessage('codec')).toBe("This browser can't encode video at this size. Try 1080p.");
     expect(exportErrorMessage('decode')).toBe("This recording couldn't be decoded.");
     expect(exportErrorMessage('failed')).toBe('Export failed. Try again.');
+  });
+  it('dissolves for a short moment after each cut', () => {
+    expect(dissolveAt([1000, 5000], 900)).toBeNull();
+    expect(dissolveAt([1000, 5000], 1000)).toEqual({ cut: 1000, k: 0 });
+    expect(dissolveAt([1000, 5000], 1000 + DISSOLVE_MS / 2)).toEqual({ cut: 1000, k: 0.5 });
+    expect(dissolveAt([1000, 5000], 1000 + DISSOLVE_MS)).toBeNull();
   });
 });

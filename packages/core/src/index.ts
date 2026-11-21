@@ -9,5 +9,8 @@ export * from './cursor';
 export * from './camera';
 export * from './layout';
 export * from './background';
+export * from './audio';
+export * from './motion';
+export * from './source-rect';
 export * from './render';
 export * from './project';

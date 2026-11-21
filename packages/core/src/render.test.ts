@@ -41,7 +41,30 @@ describe('renderFrame', () => {
     expect(firstPaint?.name).toBe('fillRect');
     expect(calls.find((c) => c.name === 'fillRect')?.args).toEqual([0, 0, 1920, 1080]);
     const draw = calls.find((c) => c.name === 'drawImage');
-    expect(draw?.args).toEqual([source, 0, 0, 2560, 1440, 0, 0, 1280, 720]);
+    const [img, sx, sy, sw, sh, dx, dy, dw, dh] = draw!.args as [unknown, ...number[]];
+    expect([img, sx, sy, sw, sh]).toEqual([source, 0, 0, 2560, 1440]);
+    // The frame is covered edge to edge, with a hair of bleed that the clip trims off.
+    expect(dx).toBeLessThan(0);
+    expect(dx).toBeGreaterThan(-2);
+    expect(dy).toBeLessThan(0);
+    expect(dx + dw).toBeGreaterThan(1280);
+    expect(dy + dh).toBeGreaterThan(720);
+  });
+  it('fills the whole frame even when the captured video is a pixel or two off the viewport size', () => {
+    // 1280x720 at 125% should be 1600x900, but Chrome delivered 1600x898: the old width-only
+    // scale asked for rows past the bottom of the image and left a white line under the video.
+    const { ctx, calls } = mockCtx();
+    const rec = { ...recording, viewport: { w: 1280, h: 720, dpr: 1.25 } };
+    renderFrame(ctx, { project, recording: rec, track: buildCursorTrack(rec.events), outT: 500, source, sourceSize: { w: 1600, h: 898 } });
+    const [, sx, sy, sw, sh, dx, dy, dw, dh] = calls.find((c) => c.name === 'drawImage')!.args as number[];
+    expect(sx).toBe(0);
+    expect(sy).toBeGreaterThanOrEqual(14); // skips the 14 rows the hardware decoder overwrites
+    expect(sx + sw).toBeLessThanOrEqual(1600); // never reads outside the image
+    expect(sy + sh).toBeLessThanOrEqual(898);
+    expect(dx).toBeLessThanOrEqual(0); // and always covers the frame, edge to edge
+    expect(dy).toBeLessThanOrEqual(0);
+    expect(dx + dw).toBeGreaterThanOrEqual(1280);
+    expect(dy + dh).toBeGreaterThanOrEqual(720);
   });
   it('draws the cursor after the source frame', () => {
     const { ctx, calls } = mockCtx();

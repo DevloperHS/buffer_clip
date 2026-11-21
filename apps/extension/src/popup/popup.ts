@@ -8,6 +8,7 @@ let tabId = -1;
 let recordable = false;
 let mode: Mode = 'tab';
 let audio = false;
+let mic = false;
 let timer: ReturnType<typeof setInterval> | null = null;
 
 const send = <T>(msg: BgRequest) => chrome.runtime.sendMessage(msg) as Promise<T>;
@@ -51,6 +52,7 @@ function render(status: StatusResponse, error?: string): void {
       <button role="radio" aria-checked="${mode === 'area'}" data-mode="area">Select area</button>
     </div>
     <div class="row"><span>Include tab audio</span><button class="switch" role="switch" aria-label="Include tab audio" aria-checked="${audio}" data-act="audio"><i></i></button></div>
+    <div class="row"><span>Microphone</span><button class="switch" role="switch" aria-label="Microphone" aria-checked="${mic}" data-act="mic"><i></i></button></div>
     <button class="record" data-act="record" aria-label="Start recording"><span class="dot"></span></button>
     <p class="sub">${mode === 'area' ? 'Drag over the page to choose what to record.' : 'Recording starts after a 3 second countdown.'}</p>
     ${err}${pendingList(status.pending)}`;
@@ -80,9 +82,26 @@ app.addEventListener('click', async (e) => {
       audio = !audio;
       await chrome.storage.local.set({ audio });
       return refresh();
+    case 'mic': {
+      if (mic) {
+        mic = false;
+        await chrome.storage.local.set({ mic });
+        return refresh();
+      }
+      // The popup can't show Chrome's permission prompt; a small extension page asks once.
+      const state = await navigator.permissions.query({ name: 'microphone' as PermissionName }).catch(() => null);
+      if (state?.state === 'granted') {
+        mic = true;
+        await chrome.storage.local.set({ mic });
+        return refresh();
+      }
+      await chrome.tabs.create({ url: chrome.runtime.getURL('mic.html') });
+      window.close();
+      return;
+    }
     case 'record': {
       // The background drives the rest; close so the page is unobstructed.
-      void send<Result>({ type: 'popup:start', tabId, mode, audio });
+      void send<Result>({ type: 'popup:start', tabId, mode, audio, mic });
       setTimeout(() => window.close(), 60);
       return;
     }
@@ -99,8 +118,9 @@ app.addEventListener('click', async (e) => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   tabId = tab?.id ?? -1;
   recordable = isRecordable(tab?.url);
-  const prefs = await chrome.storage.local.get(['mode', 'audio']);
+  const prefs = await chrome.storage.local.get(['mode', 'audio', 'mic']);
   mode = prefs.mode === 'area' ? 'area' : 'tab';
   audio = prefs.audio === true;
+  mic = prefs.mic === true;
   await refresh();
 })();

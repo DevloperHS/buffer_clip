@@ -18,11 +18,11 @@ describe('detectIdle', () => {
       { srcStart: 5600, srcEnd: 7400, speed: 1 },
     ]);
   });
-  it('speeds up medium gaps 8x', () => {
+  it('speeds up medium gaps 4x', () => {
     const ev = [...moves(0, 1000), ...moves(3000, 4000)];
     expect(strip(detectIdle(ev, 4000))).toEqual([
       { srcStart: 0, srcEnd: 1400, speed: 1 },
-      { srcStart: 1400, srcEnd: 2600, speed: 8 },
+      { srcStart: 1400, srcEnd: 2600, speed: 4 },
       { srcStart: 2600, srcEnd: 4000, speed: 1 },
     ]);
   });

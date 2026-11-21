@@ -115,7 +115,7 @@ export function createEditorStore(recording: Recording, project: Project, opts: 
             set({ selection: null });
           },
           redetectIdle: () => {
-            patch((p) => ({ ...p, clips: detectIdle(recording.events, duration) }));
+            patch((p) => ({ ...p, clips: detectIdle(recording.events, duration, {}, recording.motion) }));
             set({ selection: null });
           },
         };
@@ -141,6 +141,9 @@ export interface PlaybackState {
   pause: () => void;
   toggle: () => void;
   tick: (outT: Ms) => void;
+  /** Preview sound; recordings with sound play it by default. */
+  muted: boolean;
+  toggleMute: () => void;
 }
 
 export function createPlaybackStore(getDuration: () => Ms) {
@@ -154,6 +157,8 @@ export function createPlaybackStore(getDuration: () => Ms) {
     pause: () => set({ playing: false }),
     toggle: () => set((s) => ({ playing: !s.playing })),
     tick: (outT) => set({ outT }),
+    muted: false,
+    toggleMute: () => set((s) => ({ muted: !s.muted })),
   }));
 }
 

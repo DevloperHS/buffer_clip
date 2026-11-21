@@ -1,10 +1,10 @@
-import { buildCursorTrack, outputSize, renderFrame, type Project, type Recording } from '@buffer-clip/core';
+import { buildCursorTrack, cutTimes, easeInOutCubic, fadeEdges, outputSize, renderFrame, timeStretch, type Project, type Recording } from '@buffer-clip/core';
 import {
   ALL_FORMATS, AudioBufferSource, AudioSampleSink, BlobSource, BufferTarget, CanvasSource,
-  getFirstEncodableAudioCodec, getFirstEncodableVideoCodec, Input, Mp4OutputFormat, Output, Quality, VideoSampleSink,
+  getFirstEncodableAudioCodec, getFirstEncodableVideoCodec, Input, Mp4OutputFormat, Output, Quality, CanvasSink,
   type AudioCodec, type InputAudioTrack, type VideoCodec,
 } from 'mediabunny';
-import { AUDIO_BITRATE, bitrateFor, exportFrameTimes, planAudio, type AudioSegment, type ExportErrorCode } from './export-plan';
+import { AUDIO_BITRATE, AUDIO_FADE_MS, bitrateFor, dissolveAt, exportFrameTimes, planAudio, type AudioSegment, type ExportErrorCode } from './export-plan';
 
 export class ExportError extends Error {
   constructor(public readonly code: ExportErrorCode, message?: string) {
@@ -38,20 +38,28 @@ async function renderAudio(track: InputAudioTrack, segments: AudioSegment[], sig
     const length = Math.round((seg.outDurationMs / 1000) * sampleRate);
     if (length <= 0) continue;
     const buffer = new AudioBuffer({ length, numberOfChannels: channels, sampleRate });
-    if (!seg.mute) {
-      const start = seg.srcStartMs / 1000;
-      for await (const sample of sink.samples(start, seg.srcEndMs / 1000)) {
-        const chunk = sample.toAudioBuffer();
-        const offset = Math.round((sample.timestamp - start) * sampleRate);
-        for (let c = 0; c < channels; c++) {
-          const src = chunk.getChannelData(Math.min(c, chunk.numberOfChannels - 1));
-          const from = Math.max(0, -offset);
-          const to = Math.max(0, offset);
-          const n = Math.min(src.length - from, length - to);
-          if (n > 0) buffer.getChannelData(c).set(src.subarray(from, from + n), to);
-        }
-        sample.close();
+    // Read the source range, then fit it to the output length (time-stretched when sped up).
+    const srcLength = Math.max(1, Math.round(((seg.srcEndMs - seg.srcStartMs) / 1000) * sampleRate));
+    const raw = Array.from({ length: channels }, () => new Float32Array(srcLength));
+    const start = seg.srcStartMs / 1000;
+    for await (const sample of sink.samples(start, seg.srcEndMs / 1000)) {
+      const chunk = sample.toAudioBuffer();
+      const offset = Math.round((sample.timestamp - start) * sampleRate);
+      for (let c = 0; c < channels; c++) {
+        const src = chunk.getChannelData(Math.min(c, chunk.numberOfChannels - 1));
+        const from = Math.max(0, -offset);
+        const to = Math.max(0, offset);
+        const n = Math.min(src.length - from, srcLength - to);
+        if (n > 0) raw[c].set(src.subarray(from, from + n), to);
       }
+      sample.close();
+    }
+    for (let c = 0; c < channels; c++) {
+      const fitted = seg.speed === 1 ? raw[c] : timeStretch(raw[c], seg.speed, sampleRate);
+      const data = buffer.getChannelData(c);
+      data.set(fitted.subarray(0, length));
+      if (seg.gain !== 1) for (let i = 0; i < data.length; i++) data[i] *= seg.gain;
+      fadeEdges(data, Math.round((AUDIO_FADE_MS / 1000) * sampleRate));
     }
     out.push(buffer);
   }
@@ -97,30 +105,49 @@ export async function exportMp4({ project, recording, video, onProgress, signal 
   await output.start();
   try {
     const track = buildCursorTrack(recording.events);
-    const sink = new VideoSampleSink(videoTrack);
+    // Decode into properly cropped canvases. Drawing raw decoded frames picked up the decoder's
+    // padding rows (a green strip) whenever the capture height wasn't a multiple of its block size.
+    const sink = new CanvasSink(videoTrack, { poolSize: 2 });
     const videoShare = audioSource ? 0.9 : 1;
+    // Cuts dissolve: hold the last frame before each cut and fade it out over the new footage.
+    const cuts = cutTimes(project.clips);
+    const held = document.createElement('canvas');
+    held.width = size.w;
+    held.height = size.h;
+    const heldCtx = held.getContext('2d');
+    let prevOutT = -1;
     let i = 0;
     let drawn = false;
-    for await (const sample of sink.samplesAtTimestamps(times.map((t) => t / 1000))) {
+    for await (const sample of sink.canvasesAtTimestamps(times.map((t) => t / 1000))) {
       if (signal?.aborted) {
-        sample?.close();
         throw new ExportError('cancelled');
       }
       const outT = (i * 1000) / fps;
+      if (heldCtx && drawn && cuts.some((c) => c > prevOutT && c <= outT)) {
+        heldCtx.clearRect(0, 0, size.w, size.h);
+        heldCtx.drawImage(canvas, 0, 0);
+      }
+      prevOutT = outT;
       if (sample) {
         renderFrame(ctx, {
           project,
           recording,
           track,
           outT,
-          source: sample.toCanvasImageSource(),
-          sourceSize: { w: sample.displayWidth, h: sample.displayHeight },
+          source: sample.canvas,
+          sourceSize: { w: sample.canvas.width, h: sample.canvas.height },
         });
-        sample.close();
         drawn = true;
       } else if (!drawn) {
         renderFrame(ctx, { project, recording, track, outT, source: null, sourceSize: { w: 1, h: 1 } });
         drawn = true;
+      }
+      const dissolve = dissolveAt(cuts, outT);
+      if (dissolve && heldCtx) {
+        ctx.save();
+        ctx.globalAlpha = 1 - easeInOutCubic(dissolve.k);
+        ctx.drawImage(held, 0, 0);
+        ctx.restore();
       }
       await videoSource.add(i / fps, 1 / fps);
       i++;

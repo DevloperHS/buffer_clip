@@ -9,6 +9,7 @@ import { TrafficLights } from '@/components/ui/TrafficLights';
 import { spring } from '@/design/motion';
 import { requestFromExtension } from '@/lib/bridge';
 import { deleteRecording, getVideo, loadOrCreateProject, saveRecording } from '@/lib/storage';
+import { computeMotion } from '@/lib/motion';
 import { captureThumbnail } from '@/lib/thumbnail';
 import { EditorWorkspace } from './EditorWorkspace';
 
@@ -32,7 +33,9 @@ export function EditorScreen({ id }: { id: string }) {
         const received = await requestFromExtension(id);
         if (received) {
           const thumb = await captureThumbnail(received.video);
-          await saveRecording(received.recording, received.video, thumb);
+          const motion = await computeMotion(received.video, received.recording.durationMs).catch(() => null);
+          const recording = motion ? { ...received.recording, motion } : received.recording;
+          await saveRecording(recording, received.video, thumb);
           received.ack();
           loaded = await loadOrCreateProject(id);
         }

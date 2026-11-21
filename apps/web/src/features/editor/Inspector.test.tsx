@@ -16,6 +16,7 @@ const rec: Recording = {
 };
 
 function setup() {
+  localStorage.clear(); // the customize panel remembers whether it was open
   const stores = createStores(rec, createInitialProject(rec));
   render(<EditorProvider stores={stores}><Inspector /></EditorProvider>);
   return stores;
@@ -40,8 +41,18 @@ describe('Inspector', () => {
     expect(editor.getState().project.background).toMatchObject({ kind: 'mesh', value: '#0B1026,#6D5BFF,#00D1FF,#FF5FA2' });
     expect(screen.getByRole('button', { name: 'Aurora' })).toHaveAttribute('aria-pressed', 'true');
   });
+  it('keeps the customize panel collapsed until opened', async () => {
+    setup();
+    const toggle = screen.getByRole('button', { name: /Customize/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByLabelText('Colour 1')).not.toBeInTheDocument();
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByLabelText('Colour 1')).toBeInTheDocument();
+  });
   it('builds a custom gradient: edit colours, add a stop and set the angle', async () => {
     const { editor } = setup();
+    await userEvent.click(screen.getByRole('button', { name: /Customize/ }));
     fireEvent.change(screen.getByLabelText('Colour 1'), { target: { value: '#ff0000' } });
     await userEvent.click(screen.getByRole('button', { name: 'Add colour' }));
     fireEvent.change(screen.getByRole('slider', { name: 'Angle' }), { target: { value: '90' } });

@@ -10,6 +10,7 @@ export interface Session {
   startedAt: number | null; // epoch ms when recording began
   mode: Mode;
   audio: boolean;
+  mic?: boolean;
 }
 
 export interface PendingSummary { id: string; name: string; durationMs: number; createdAt: number }
@@ -19,14 +20,14 @@ export interface Result { ok: boolean; error?: string; id?: string }
 /** Messages handled by the background service worker. */
 export type BgRequest =
   | { type: 'popup:status' }
-  | { type: 'popup:start'; tabId: number; mode: Mode; audio: boolean }
+  | { type: 'popup:start'; tabId: number; mode: Mode; audio: boolean; mic: boolean }
   | { type: 'popup:stop' }
   | { type: 'popup:open'; id: string }
   | { type: 'offscreen:tick'; elapsedMs: number };
 
 /** Messages handled by the offscreen document. */
 export type OffscreenRequest =
-  | { type: 'offscreen:start'; streamId: string; audio: boolean; viewport: Viewport; crop: Rect | null }
+  | { type: 'offscreen:start'; streamId: string; audio: boolean; mic: boolean; viewport: Viewport; crop: Rect | null }
   | { type: 'offscreen:stop' }
   | { type: 'content:events'; events: InputEvent[] };
 

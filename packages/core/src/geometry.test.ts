@@ -3,7 +3,7 @@ import { cameraAt, frameToScreen, screenToFrame } from './camera';
 import { buildCursorTrack } from './cursor';
 import { computeLayout, frameRect, outputSize } from './layout';
 import { createInitialProject } from './project';
-import { cameraFor } from './render';
+import { cameraFor, outputZooms } from './render';
 import type { Recording } from './types';
 
 const rec: Recording = {
@@ -30,10 +30,10 @@ describe('frame geometry', () => {
     expect(back.x).toBeCloseTo(p.x);
     expect(back.y).toBeCloseTo(p.y);
   });
-  it('cameraFor agrees with cameraAt for fixed targets', () => {
+  it('cameraFor agrees with cameraAt on the output timeline', () => {
     const p = createInitialProject(rec);
     const track = buildCursorTrack(rec.events);
     const frame = { x: 0, y: 0, w: 1280, h: 720 };
-    expect(cameraFor(p, rec, track, 1000)).toEqual(cameraAt(1000, p.zooms, frame, () => ({ x: 0, y: 0 })));
+    expect(cameraFor(p, rec, track, 1000)).toEqual(cameraAt(1000, outputZooms(p.zooms, p.clips), frame, () => ({ x: 0, y: 0 })));
   });
 });

@@ -10,7 +10,7 @@ Spotting a bug, suggesting an idea or fixing a typo all make Buffer Clip better.
 <br>
 
 > [!NOTE]
-> This repository is private. To take part, ask the owner to invite you as a collaborator. You'll get an email from GitHub; click **Accept invitation** and you're in.
+> Anyone with a free GitHub account can take part. No invitation needed.
 
 ## 📚 Contents
 
@@ -21,6 +21,7 @@ Spotting a bug, suggesting an idea or fixing a typo all make Buffer Clip better.
 - [Fix a typo or improve the wording](#fix-text)
 - [Words you'll see on GitHub](#glossary)
 - [For developers](#for-developers)
+- [License of your contributions](#license)
 - [Be kind](#be-kind)
 
 <a id="ways-you-can-help"></a>
@@ -39,11 +40,7 @@ Spotting a bug, suggesting an idea or fixing a typo all make Buffer Clip better.
 
 ## 🪪 Before you start: a free GitHub account
 
-GitHub is the website where Buffer Clip's files and discussions live. To join in:
-
-1. Go to [github.com/signup](https://github.com/signup) and create a free account.
-2. Send your GitHub username to the owner so they can invite you.
-3. Accept the invitation from your email.
+GitHub is the website where Buffer Clip's files and discussions live. To join in, go to [github.com/signup](https://github.com/signup) and create a free account.
 
 That's all the setup you need for everything except writing code.
 
@@ -92,12 +89,10 @@ You can edit text files, like this guide or the [README](README.md), right in yo
 
 1. Open the file on GitHub, for example **README.md**.
 2. Click the ✏️ **pencil icon** (Edit this file) at the top right of the file.
-3. Make your change in the editor.
-4. Click the green **Commit changes…** button.
-5. In the window that opens:
-   - Write a short note about what you changed, for example *"Fix typo in Getting started"*.
-   - Choose **Create a new branch for this commit and start a pull request**.
-6. Click **Propose changes**, then **Create pull request**.
+3. The first time, GitHub asks you to **fork** the project, which means making your own copy to edit safely. Click **Fork this repository**.
+4. Make your change in the editor.
+5. Click the green **Commit changes…** button and write a short note about what you changed, for example *"Fix typo in Getting started"*.
+6. Click **Propose changes**, then **Create pull request**, and once more **Create pull request** to send it.
 
 The owner will review your change and add it. If anything needs adjusting, they'll leave a comment and you'll get an email.
 
@@ -113,7 +108,7 @@ The owner will review your change and add it. If anything needs adjusting, they'
 | **Branch** | A separate copy of the project where changes are made safely. |
 | **Commit** | A saved change, with a short note describing it. |
 | **Merge** | When a proposed change is accepted into the main project. |
-| **Collaborator** | Someone invited to work on a private repository. |
+| **Fork** | Your own copy of the project in your account, where you can make changes and then propose them back. |
 
 <a id="for-developers"></a>
 
@@ -126,8 +121,10 @@ The owner will review your change and add it. If anything needs adjusting, they'
 
 **Requirements:** Node.js 20+, pnpm 9+, Chrome or Edge.
 
+First **fork** the repository (the **Fork** button at the top of the GitHub page), then clone your fork:
+
 ```bash
-git clone https://github.com/DevloperHS/buffer_clip.git
+git clone https://github.com/<your-username>/buffer_clip.git
 cd buffer_clip
 pnpm install
 pnpm dev                                    # web app on http://localhost:3000
@@ -147,7 +144,7 @@ pnpm --filter @buffer-clip/extension build  # then load apps/extension/dist in c
    pnpm --filter @buffer-clip/web e2e   # end-to-end tests (Playwright)
    ```
 
-5. Open a pull request against `main` and describe what changed and how you checked it. Screenshots help for anything visual.
+5. Push your branch to your fork and open a pull request against `main` of this repository. Describe what changed and how you checked it. Screenshots help for anything visual.
 
 **Where things live**
 
@@ -159,6 +156,14 @@ pnpm --filter @buffer-clip/extension build  # then load apps/extension/dist in c
 | `demo` | Scripts that produce the launch demo video. |
 
 </details>
+
+<a id="license"></a>
+
+## 📄 License of your contributions
+
+Buffer Clip is shared under the [PolyForm Noncommercial License 1.0.0](LICENSE): free for personal and non-commercial use, but not for commercial use.
+
+By sending a contribution (code, text, images or anything else), you confirm that you have the right to share it, and you agree that it's licensed under the same terms as the project. You also give the project owner a permanent, worldwide, royalty-free right to use, change, sublicense and relicense your contribution, including under other terms.
 
 <a id="be-kind"></a>
 

@@ -1,6 +1,6 @@
 'use client';
 import { outputDuration, type Ms } from '@buffer-clip/core';
-import { Pause, Play } from 'lucide-react';
+import { Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useRef, type PointerEvent } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +18,8 @@ function Transport({ total }: { total: Ms }) {
   const outT = usePlayback((s) => s.outT);
   const duration = useEditor((s) => s.recording.durationMs);
   const saved = Math.max(0, duration - total);
+  const hasAudio = useEditor((s) => s.recording.hasAudio);
+  const muted = usePlayback((s) => s.muted);
   return (
     <div className="flex items-center gap-3 px-3 pt-2">
       <Button size="sm" variant="ghost" aria-label={playing ? 'Pause' : 'Play'} data-tour="transport-play" onClick={() => playback.getState().toggle()}>
@@ -27,6 +29,16 @@ function Transport({ total }: { total: Ms }) {
         {formatTimecode(outT)} <span className="text-muted">/ {formatTimecode(total)}</span>
       </span>
       <span className="flex-1" />
+      {hasAudio ? (
+        <Button size="sm" variant="ghost" aria-label={muted ? 'Unmute preview' : 'Mute preview'} aria-pressed={muted}
+          onClick={() => playback.getState().toggleMute()}>
+          {muted ? <VolumeX size={14} aria-hidden /> : <Volume2 size={14} aria-hidden />}
+        </Button>
+      ) : (
+        <span className="flex items-center gap-1 text-[11px] text-muted" title="Turn on tab audio or the microphone in the extension before recording">
+          <VolumeX size={12} aria-hidden /> No sound recorded
+        </span>
+      )}
       {saved >= 100 && <span className="text-[11px] text-muted">Idle trimmed · {(saved / 1000).toFixed(1)}s saved</span>}
     </div>
   );

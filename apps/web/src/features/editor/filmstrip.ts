@@ -1,4 +1,4 @@
-import type { Ms, Rect } from '@buffer-clip/core';
+import { decoderJunkRows, type Ms, type Rect } from '@buffer-clip/core';
 
 /** One sprite image holding evenly spaced frames from the recording, left to right. */
 export interface Filmstrip {
@@ -77,7 +77,12 @@ export async function buildFilmstrip(
     const frameW = Math.max(1, Math.round((frameH * srcW) / srcH));
     const { times, stepMs } = sampleTimes(opts.durationMs);
 
-    const sink = new CanvasSink(track, { width: frameW, height: frameH, fit: 'cover', crop, poolSize: 2 });
+    // Skip the rows hardware decoders overwrite on frames that aren't 16 pixels tall multiples.
+    const junk = decoderJunkRows(track.displayHeight);
+    const trimmed = junk > 0
+      ? { left: crop?.left ?? 0, top: (crop?.top ?? 0) + junk, width: srcW, height: Math.max(1, srcH - junk) }
+      : crop;
+    const sink = new CanvasSink(track, { width: frameW, height: frameH, fit: 'cover', crop: trimmed, poolSize: 2 });
     const sprite = document.createElement('canvas');
     sprite.width = frameW * times.length;
     sprite.height = frameH;

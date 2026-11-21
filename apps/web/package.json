@@ -2,6 +2,7 @@
   "name": "@buffer-clip/web",
   "version": "0.0.0",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "scripts": {
     "dev": "next dev --port 3000",

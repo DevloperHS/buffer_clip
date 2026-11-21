@@ -1,6 +1,7 @@
 {
   "name": "buffer-clip",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "dev": "pnpm --filter @buffer-clip/web dev",
     "test": "pnpm -r test",

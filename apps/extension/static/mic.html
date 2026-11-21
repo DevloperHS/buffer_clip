@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Buffer Clip · Microphone</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      body { width: auto; min-height: 100vh; display: grid; place-items: center; }
+      main { max-width: 360px; text-align: center; padding: 32px; }
+      h1 { font-size: 17px; margin: 14px 0 6px; font-weight: 600; }
+      p { color: var(--secondary); font-size: 13px; line-height: 1.5; margin: 0; }
+      .logo { margin: 0 auto; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="logo"><i></i></span>
+      <h1 id="title">Allow microphone</h1>
+      <p id="msg">Chrome will ask for access to your microphone so Buffer Clip can record your voice with the tab.</p>
+    </main>
+    <script src="mic.js"></script>
+  </body>
+</html>

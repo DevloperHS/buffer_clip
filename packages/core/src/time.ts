@@ -40,6 +40,17 @@ export function resolvePlayback(clips: Clip[], srcT: Ms): PlaybackPosition | nul
   return null;
 }
 
+/** Output times where the source jumps (a cut), as opposed to a plain speed change. */
+export function cutTimes(clips: Clip[]): Ms[] {
+  const out: Ms[] = [];
+  let acc = 0;
+  for (let i = 0; i < clips.length - 1; i++) {
+    acc += clipOutLen(clips[i]);
+    if (Math.abs(clips[i + 1].srcStart - clips[i].srcEnd) > 1) out.push(acc);
+  }
+  return out;
+}
+
 export function srcToOutClamped(clips: Clip[], srcT: Ms): Ms {
   let acc = 0;
   for (const c of clips) {

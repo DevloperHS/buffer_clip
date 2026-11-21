@@ -41,12 +41,12 @@ async function injectRecorder(tabId: number): Promise<void> {
   await chrome.scripting.executeScript({ target: { tabId }, files: ['recorder-content.js'] });
 }
 
-async function startRecording(tabId: number, mode: Mode, audio: boolean): Promise<Result> {
+async function startRecording(tabId: number, mode: Mode, audio: boolean, mic: boolean): Promise<Result> {
   if (await getSession()) return { ok: false, error: 'A recording is already in progress.' };
   const tab = await chrome.tabs.get(tabId);
   if (!isRecordable(tab.url)) return { ok: false, error: RESTRICTED_MESSAGE };
 
-  await setSession({ tabId, phase: 'preparing', startedAt: null, mode, audio });
+  await setSession({ tabId, phase: 'preparing', startedAt: null, mode, audio, mic });
   try {
     await injectRecorder(tabId);
     const prepared = await toContent<Prepared | null>(tabId, { type: 'content:prepare', mode });
@@ -56,10 +56,10 @@ async function startRecording(tabId: number, mode: Mode, audio: boolean): Promis
     }
     const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId });
     await ensureOffscreen();
-    const started = await toOffscreen({ type: 'offscreen:start', streamId, audio, viewport: prepared.viewport, crop: prepared.crop });
+    const started = await toOffscreen({ type: 'offscreen:start', streamId, audio, mic, viewport: prepared.viewport, crop: prepared.crop });
     if (!started?.ok) throw new Error(started?.error ?? 'Could not start the recorder.');
     await toContent(tabId, { type: 'content:begin' });
-    await setSession({ tabId, phase: 'recording', startedAt: Date.now(), mode, audio });
+    await setSession({ tabId, phase: 'recording', startedAt: Date.now(), mode, audio, mic });
     await setBadge('0:00');
     return { ok: true };
   } catch (e) {
@@ -99,7 +99,7 @@ function route(msg: BgRequest): Promise<unknown> | null {
     case 'popup:status':
       return status();
     case 'popup:start':
-      return startRecording(msg.tabId, msg.mode, msg.audio);
+      return startRecording(msg.tabId, msg.mode, msg.audio, msg.mic === true);
     case 'popup:stop':
       return stopRecording();
     case 'popup:open':

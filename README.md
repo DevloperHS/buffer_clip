@@ -26,7 +26,8 @@ styles the frame and exports a crisp MP4. All in your browser, nothing uploaded.
 ![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)
 ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=flat-square&logo=pnpm&logoColor=white)
-[![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=flat-square)](LICENSE)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm_Noncommercial-111111?style=flat-square)](LICENSE)
+![Status: early preview](https://img.shields.io/badge/Status-Early_preview-F59E0B?style=flat-square)
 
 [**Features**](#features) · [**How it works**](#how-it-works) · [**Getting started**](#getting-started) · [**Project structure**](#project-structure) · [**Contributing**](CONTRIBUTING.md)
 
@@ -37,6 +38,15 @@ styles the frame and exports a crisp MP4. All in your browser, nothing uploaded.
 </div>
 
 <br>
+
+> [!IMPORTANT]
+> **Buffer Clip is an early preview.** It works end to end, but expect rough edges. Known limits today:
+> - It runs in **Chrome and Edge** only.
+> - Projects are saved **in your browser**, so they don't sync between browsers or computers.
+> - The extension isn't in the Chrome Web Store yet; you load it yourself (see [Getting started](#getting-started)).
+> - Recording with the **microphone** is new and hasn't been widely tested yet.
+>
+> Found something broken? [Report it](CONTRIBUTING.md#report-a-bug). It really helps.
 
 <a id="features"></a>
 
@@ -141,7 +151,7 @@ You don't need to be a programmer to help: reporting a bug, suggesting an idea o
 
 ## 📄 License
 
-Released under the [MIT License](LICENSE).
+Buffer Clip is **source-available** under the [PolyForm Noncommercial License 1.0.0](LICENSE). You're free to use, study, change and share it for personal and other **non-commercial** purposes. **Commercial use is not permitted.**
 
 <div align="center">
 <br>

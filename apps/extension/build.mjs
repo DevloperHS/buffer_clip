@@ -25,10 +25,11 @@ await build({
     offscreen: 'src/offscreen/offscreen.ts',
     popup: 'src/popup/popup.ts',
     'bridge-page': 'src/bridge/bridge-page.ts',
+    mic: 'src/mic/mic.ts',
   },
 });
 
-for (const file of ['popup.html', 'popup.css', 'offscreen.html', 'bridge.html']) {
+for (const file of ['popup.html', 'popup.css', 'offscreen.html', 'bridge.html', 'mic.html']) {
   await cp(`static/${file}`, `${out}/${file}`);
 }
 

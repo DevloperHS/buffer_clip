@@ -24,10 +24,10 @@ export function toCanvasPoint(clientX: number, clientY: number, r: DOMRect, canv
 }
 
 /** The zoom's visible window, drawn on the preview at its current camera, in output pixels. */
-export function zoomGhostRect(project: Project, recording: Recording, track: CursorTrack, zoom: Zoom, srcT: Ms): Rect {
+export function zoomGhostRect(project: Project, recording: Recording, track: CursorTrack, zoom: Zoom, outT: Ms): Rect {
   const frame = contentFrame(recording);
   const rect = frameRect(project, recording);
-  const cam = cameraFor(project, recording, track, srcT);
+  const cam = cameraFor(project, recording, track, outT);
   let target: Point;
   if (zoom.target === 'follow') {
     const c = cursorAt(track, zoom.start, project.cursor);

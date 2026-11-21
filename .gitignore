@@ -8,7 +8,6 @@ next-env.d.ts
 test-results/
 playwright-report/
 apps/extension/dist/
-.claude/
 apps/web/AGENTS.md
 .env*
 !.env.example

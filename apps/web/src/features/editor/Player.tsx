@@ -1,13 +1,14 @@
 'use client';
 import {
-  buildCursorTrack, cameraFor, clamp01, contentFrame, easeInOutCubic, frameRect, outputDuration, outputSize,
+  buildCursorTrack, cameraFor, clamp01, cutTimes, contentFrame, easeInOutCubic, frameRect, outputDuration, outputSize,
   outToSrc, renderFrame, resolvePlayback, screenToFrame, type Point, type Project, type Rect,
 } from '@buffer-clip/core';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { spring } from '@/design/motion';
+import { dissolveAt } from '@/lib/export/export-plan';
 import { prepareVideo } from '@/lib/video';
-import { useEditor, useStores } from './EditorContext';
+import { useEditor, usePlayback, useStores } from './EditorContext';
 import { boxToZoom, fitInside, lockedBox, toCanvasPoint, withIntro, zoomGhostRect } from './preview-math';
 
 const INTRO_DELAY_MS = 200;
@@ -31,6 +32,7 @@ export function Player({ videoUrl }: { videoUrl: string }) {
   const recording = useEditor((s) => s.recording);
   const output = useEditor((s) => s.project.output);
   const picking = useEditor((s) => s.picking);
+  const muted = usePlayback((s) => s.muted);
   const hoverZoomId = useEditor((s) => s.hoverZoomId);
   const exportProgress = useEditor((s) => s.exportProgress);
   const pickingZoomId = useEditor((s) => (s.picking && s.selection?.kind === 'zoom' ? s.selection.id : null));
@@ -101,6 +103,11 @@ export function Player({ videoUrl }: { videoUrl: string }) {
     if (!video || !ctx) return;
     if (!mountedAt.current) mountedAt.current = performance.now();
     let raf = 0;
+    // Dissolve across cuts while playing: keep the last frame before a cut and fade it out.
+    const held = document.createElement('canvas');
+    const heldCtx = held.getContext('2d');
+    let lastOutT = playback.getState().outT;
+    let heldCut: number | null = null;
     const loop = (now: number) => {
       const { project: p, intro, picking: drawingArea } = editor.getState();
       const pb = playback.getState();
@@ -116,6 +123,18 @@ export function Player({ videoUrl }: { videoUrl: string }) {
           pb.tick(pos.outT);
         }
       }
+      const outNow = playback.getState().outT;
+      const cuts = cutTimes(p.clips);
+      const crossed = pb.playing && outNow > lastOutT && outNow - lastOutT < 400 ? cuts.find((c) => c > lastOutT && c <= outNow) : undefined;
+      if (crossed !== undefined && heldCtx) {
+        held.width = ctx.canvas.width;
+        held.height = ctx.canvas.height;
+        heldCtx.drawImage(ctx.canvas, 0, 0);
+        heldCut = crossed;
+      } else if (!pb.playing || outNow < lastOutT) {
+        heldCut = null;
+      }
+      lastOutT = outNow;
       const k = intro ? easeInOutCubic(clamp01((now - mountedAt.current - INTRO_DELAY_MS) / INTRO_MS)) : 1;
       renderFrame(ctx, {
         // While drawing a zoom area, show the whole recording so the box is drawn on what it will zoom into.
@@ -126,6 +145,15 @@ export function Player({ videoUrl }: { videoUrl: string }) {
         source: ready ? video : null,
         sourceSize: { w: video.videoWidth || recording.viewport.w, h: video.videoHeight || recording.viewport.h },
       });
+      const dissolve = heldCut !== null ? dissolveAt([heldCut], outNow) : null;
+      if (dissolve && held.width === ctx.canvas.width) {
+        ctx.save();
+        ctx.globalAlpha = 1 - easeInOutCubic(dissolve.k);
+        ctx.drawImage(held, 0, 0);
+        ctx.restore();
+      } else {
+        heldCut = null;
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -154,10 +182,9 @@ export function Player({ videoUrl }: { videoUrl: string }) {
     setDrawing(null);
     if (!a || s.selection?.kind !== 'zoom') return;
     const b = toPt(e);
-    const srcT = outToSrc(s.project.clips, playback.getState().outT);
     const rect = frameRect(s.project, recording);
     const frame = contentFrame(recording);
-    const cam = cameraFor(unzoomed(s.project), recording, track, srcT);
+    const cam = cameraFor(unzoomed(s.project), recording, track, playback.getState().outT);
     const drawn = lockedBox(a, b, aspect);
     if (isBox(drawn)) {
       s.updateZoom(s.selection.id, boxToZoom(drawn, rect, frame, cam));
@@ -182,7 +209,7 @@ export function Player({ videoUrl }: { videoUrl: string }) {
   const ghostId = hoverZoomId ?? pickingZoomId;
   const hovered = ghostId ? project.zooms.find((z) => z.id === ghostId) : undefined;
   const ghost = hovered && !drawing
-    ? zoomGhostRect(picking ? unzoomed(project) : project, recording, track, hovered, outToSrc(project.clips, playback.getState().outT))
+    ? zoomGhostRect(picking ? unzoomed(project) : project, recording, track, hovered, playback.getState().outT)
     : null;
 
   return (
@@ -253,7 +280,7 @@ export function Player({ videoUrl }: { videoUrl: string }) {
           )}
         </motion.div>
       )}
-      <video ref={videoRef} src={videoUrl} muted playsInline preload="auto" className="hidden" />
+      <video ref={videoRef} src={videoUrl} muted={!recording.hasAudio || muted} playsInline preload="auto" className="hidden" />
     </div>
   );
 }

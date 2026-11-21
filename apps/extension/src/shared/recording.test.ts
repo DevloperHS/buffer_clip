@@ -32,4 +32,9 @@ describe('buildRecording', () => {
       events: [{ type: 'click', t: 500, x: 1, y: 1, button: 0 }],
     });
   });
+  it('marks recordings captured at a fixed size as letterboxed', () => {
+    const base = { id: 'x', createdAt: 0, startedAt: 0, stoppedAt: 1000, viewport: { w: 1280, h: 719, dpr: 1.25 }, crop: null, hasAudio: false, events: [] };
+    expect(buildRecording({ ...base, letterboxed: true }).captureFit).toBe('letterbox');
+    expect(buildRecording(base).captureFit).toBeUndefined();
+  });
 });

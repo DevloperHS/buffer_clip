@@ -11,15 +11,36 @@ export function exportFrameTimes(clips: Clip[], fps: number): Ms[] {
   return Array.from({ length: count }, (_, i) => outToSrc(clips, (i * 1000) / fps));
 }
 
-export interface AudioSegment { srcStartMs: Ms; srcEndMs: Ms; outDurationMs: Ms; mute: boolean }
+export interface AudioSegment { srcStartMs: Ms; srcEndMs: Ms; outDurationMs: Ms; speed: number; gain: number }
+
+/** Sped-up stretches keep their sound (time-stretched, pitch kept) but sit a little lower in the mix. */
+export const SPED_UP_GAIN = 0.6;
+/** Short fades at every segment edge so cuts don't click. */
+export const AUDIO_FADE_MS = 12;
 
 export function planAudio(clips: Clip[]): AudioSegment[] {
   return clips.map((c) => ({
     srcStartMs: c.srcStart,
     srcEndMs: c.srcEnd,
     outDurationMs: (c.srcEnd - c.srcStart) / c.speed,
-    mute: c.speed !== 1,
+    speed: c.speed,
+    gain: c.speed === 1 ? 1 : SPED_UP_GAIN,
   }));
+}
+
+/** How long the picture dissolves across a cut. */
+export const DISSOLVE_MS = 240;
+
+/**
+ * Dissolve state at an output time: the cut it follows and how far through (0..1) the dissolve is,
+ * or null when no dissolve is running.
+ */
+export function dissolveAt(cuts: Ms[], outT: Ms, ms = DISSOLVE_MS): { cut: Ms; k: number } | null {
+  for (let i = cuts.length - 1; i >= 0; i--) {
+    const d = outT - cuts[i];
+    if (d >= 0) return d < ms ? { cut: cuts[i], k: d / ms } : null;
+  }
+  return null;
 }
 
 export function bitrateFor(size: Size, fps: number): number {

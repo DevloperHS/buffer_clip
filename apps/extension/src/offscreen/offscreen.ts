@@ -1,4 +1,4 @@
-import { newId, type InputEvent } from '@buffer-clip/core';
+import { captureSize, newId, type InputEvent } from '@buffer-clip/core';
 import { putPending } from '../shared/db';
 import type { OffscreenRequest, Result } from '../shared/messages';
 import { buildRecording } from '../shared/recording';
@@ -8,6 +8,8 @@ type StartMsg = Extract<OffscreenRequest, { type: 'offscreen:start' }>;
 let recorder: MediaRecorder | null = null;
 let stream: MediaStream | null = null;
 let audioCtx: AudioContext | null = null;
+let micStream: MediaStream | null = null;
+let recordedAudio = false;
 let setup: StartMsg | null = null;
 let chunks: Blob[] = [];
 let events: InputEvent[] = [];
@@ -30,24 +32,49 @@ async function start(msg: StartMsg): Promise<void> {
   chunks = [];
   events = [];
   const tabSource = { chromeMediaSource: 'tab', chromeMediaSourceId: msg.streamId };
+  // A fixed size in multiples of 16: Chrome's hardware decoders corrupt the top rows of frames
+  // that aren't 16-aligned. Chrome fits the page in with thin bars if the shape differs slightly.
+  const size = captureSize(msg.viewport);
   const constraints = {
     audio: msg.audio ? { mandatory: tabSource } : false,
     video: {
       mandatory: {
         ...tabSource,
-        maxWidth: Math.round(msg.viewport.w * msg.viewport.dpr),
-        maxHeight: Math.round(msg.viewport.h * msg.viewport.dpr),
+        minWidth: size.w,
+        maxWidth: size.w,
+        minHeight: size.h,
+        maxHeight: size.h,
         maxFrameRate: 30,
       },
     },
   };
   stream = await navigator.mediaDevices.getUserMedia(constraints as unknown as MediaStreamConstraints);
-  if (msg.audio) {
-    // Capturing tab audio mutes it for the user; play it back so they still hear the page.
-    audioCtx = new AudioContext();
-    audioCtx.createMediaStreamSource(stream).connect(audioCtx.destination);
+  if (msg.mic) {
+    // Needs the one-time grant from mic.html; without it, record without the microphone.
+    micStream = await navigator.mediaDevices
+      .getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
+      .catch(() => null);
   }
-  const rec = new MediaRecorder(stream, { mimeType: pickMime(msg.audio), videoBitsPerSecond: 12_000_000 });
+  // Tab audio and the microphone are mixed into one track.
+  let recorded: MediaStream = stream;
+  recordedAudio = false;
+  if (msg.audio || micStream) {
+    audioCtx = new AudioContext();
+    const mix = audioCtx.createMediaStreamDestination();
+    if (msg.audio && stream.getAudioTracks().length > 0) {
+      const tab = audioCtx.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));
+      tab.connect(mix);
+      // Capturing tab audio mutes it for the user; play it back so they still hear the page.
+      tab.connect(audioCtx.destination);
+      recordedAudio = true;
+    }
+    if (micStream) {
+      audioCtx.createMediaStreamSource(micStream).connect(mix);
+      recordedAudio = true;
+    }
+    recorded = new MediaStream([...stream.getVideoTracks(), ...(recordedAudio ? mix.stream.getAudioTracks() : [])]);
+  }
+  const rec = new MediaRecorder(recorded, { mimeType: pickMime(recordedAudio), videoBitsPerSecond: 12_000_000 });
   rec.ondataavailable = (e) => {
     if (e.data.size > 0) chunks.push(e.data);
   };
@@ -77,6 +104,7 @@ async function stop(): Promise<string> {
   await stopped;
   const stoppedAt = epochNow();
   stream?.getTracks().forEach((t) => t.stop());
+  micStream?.getTracks().forEach((t) => t.stop());
   await audioCtx?.close();
 
   const recording = buildRecording({
@@ -86,12 +114,14 @@ async function stop(): Promise<string> {
     stoppedAt,
     viewport: setup.viewport,
     crop: setup.crop,
-    hasAudio: setup.audio,
+    hasAudio: recordedAudio,
+    letterboxed: true,
     events,
   });
   await putPending({ id: recording.id, recording, video: new Blob(chunks, { type: 'video/webm' }) });
   recorder = null;
   stream = null;
+  micStream = null;
   audioCtx = null;
   setup = null;
   chunks = [];

@@ -20,7 +20,14 @@ export interface Recording {
   hasAudio: boolean;
   tutorial?: true; // created by "How to use"; opens with the guided tour
   events: InputEvent[];
+  /** How much the picture changes over time, so idle detection never cuts moving footage. */
+  motion?: MotionTrack;
+  /** 'letterbox': captured at a fixed 16-aligned size, so the page may sit between thin bars. */
+  captureFit?: 'letterbox';
 }
+
+/** Change between consecutive sampled frames (0..1), one value every `stepMs` of source time. */
+export interface MotionTrack { stepMs: Ms; values: number[] }
 
 export interface Clip { id: string; srcStart: Ms; srcEnd: Ms; speed: number; idle?: boolean }
 
